@@ -4,7 +4,7 @@ import { getDB } from './db';
 
 export const getAuth = (env: CloudflareBindings) => {
   return betterAuth({
-    baseURL: env.BETTER_AUTH_URL,
+    baseURL: new URL('/auth', env.BETTER_AUTH_URL!).toString(),
     database: drizzleAdapter(getDB(env.DB), {
       provider: 'sqlite',
     }),
@@ -14,5 +14,6 @@ export const getAuth = (env: CloudflareBindings) => {
         clientSecret: env.GITHUB_CLIENT_SECRET,
       },
     },
+    trustedOrigins: env.CORS_ORIGIN.split(','),
   });
 };

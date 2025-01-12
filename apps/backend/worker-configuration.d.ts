@@ -5,5 +5,6 @@ interface CloudflareBindings {
 	BETTER_AUTH_SECRET: string;
 	GITHUB_CLIENT_ID: string;
 	GITHUB_CLIENT_SECRET: string;
+	CORS_ORIGIN: string;
 	DB: D1Database;
 }
