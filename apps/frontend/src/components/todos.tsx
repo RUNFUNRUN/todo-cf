@@ -11,7 +11,7 @@ import {
   TableRow,
 } from './ui/table';
 import { Button } from './ui/button';
-import { Plus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { Input } from './ui/input';
 import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form';
 import { z } from 'zod';
@@ -19,7 +19,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 
 const client = hc<AppType>(import.meta.env.VITE_BETTER_AUTH_URL, {
   init: {
@@ -51,10 +51,12 @@ const NewTodo = () => {
     },
   });
 
+  const isSubmitting = form.formState.isSubmitting;
+
   const onSubmit = async (newTodo: z.infer<typeof newTodoSchema>) => {
     try {
       await client.todos.$post({ json: newTodo });
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      await queryClient.invalidateQueries({ queryKey: ['todos'] });
       form.reset();
     } catch {
       toast({ title: 'An error occurred.', variant: 'destructive' });
@@ -88,8 +90,9 @@ const NewTodo = () => {
           type='submit'
           form={newTodoId}
           className='mt-0 mb-auto'
+          disabled={isSubmitting}
         >
-          <Plus />
+          {isSubmitting ? <Loader2 className='animate-spin' /> : <Plus />}
         </Button>
       </TableCell>
     </TableRow>
@@ -101,25 +104,33 @@ const Todo = ({
 }: Readonly<{ todo: typeof schema.todo.$inferSelect }>) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [checked, setChecked] = useState(todo.completed);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleComplete = async () => {
+    const currentChecked = checked;
     try {
       if (todo.completed) {
+        setChecked(false);
         await client.todos[':id'].incomplete.$patch({ param: { id: todo.id } });
       } else {
+        setChecked(true);
         await client.todos[':id'].complete.$patch({ param: { id: todo.id } });
       }
       queryClient.invalidateQueries({ queryKey: ['todos'] });
     } catch {
+      setChecked(currentChecked);
       toast({ title: 'An error occurred.', variant: 'destructive' });
     }
   };
 
   const handleDelete = async () => {
     try {
+      setIsDeleting(true);
       await client.todos[':id'].$delete({ param: { id: todo.id } });
       queryClient.invalidateQueries({ queryKey: ['todos'] });
     } catch {
+      setIsDeleting(false);
       toast({ title: 'An error occurred.', variant: 'destructive' });
     }
   };
@@ -130,7 +141,7 @@ const Todo = ({
         <TableCell>
           <Checkbox
             className='w-6 h-6'
-            checked={todo.completed}
+            checked={checked}
             onClick={handleComplete}
           />
         </TableCell>
@@ -145,8 +156,13 @@ const Todo = ({
           </p>
         </TableCell>
         <TableCell>
-          <Button variant='destructive' size='icon' onClick={handleDelete}>
-            <Trash2 />
+          <Button
+            variant='destructive'
+            size='icon'
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? <Loader2 className='animate-spin' /> : <Trash2 />}
           </Button>
         </TableCell>
       </TableRow>
