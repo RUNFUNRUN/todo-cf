@@ -8,26 +8,49 @@ import { zValidator } from '@hono/zod-validator';
 
 export const todos = new Hono<{ Bindings: CloudflareBindings }>()
   .use(authMiddleware)
-  .get('/', async (c) => {
-    try {
-      const db = getDB(c.env.DB);
-      const user = c.var.user;
+  .get(
+    '/',
+    zValidator(
+      'query',
+      z.object({
+        status: z.enum(['completed', 'incompleted']).optional(),
+      }),
+    ),
+    async (c) => {
+      try {
+        const db = getDB(c.env.DB);
+        const user = c.var.user;
+        const status = c.req.valid('query').status;
+        const completed =
+          status === 'completed'
+            ? true
+            : status === 'incompleted'
+              ? false
+              : undefined;
 
-      const todos = await db.query.todo.findMany({
-        where: eq(schema.user.id, user.id),
-      });
+        const todos = await db.query.todo.findMany({
+          where: (todo) =>
+            and(
+              eq(todo.userId, user.id),
+              completed !== undefined
+                ? eq(todo.completed, completed)
+                : undefined,
+            ),
+          orderBy: (todo, { desc }) => [todo.completed, desc(todo.createdAt)],
+        });
 
-      return c.json({ todos }, 200);
-    } catch {
-      return c.json({}, 500);
-    }
-  })
+        return c.json({ todos }, 200);
+      } catch {
+        return c.json({}, 500);
+      }
+    },
+  )
   .post(
     '/',
     zValidator(
       'json',
       z.object({
-        name: z.string(),
+        name: z.string().min(1).max(255),
       }),
     ),
     async (c) => {
@@ -54,7 +77,7 @@ export const todos = new Hono<{ Bindings: CloudflareBindings }>()
       const todoId = c.req.param('id');
 
       const todo = await db.query.todo.findFirst({
-        where: and(eq(schema.todo.id, todoId), eq(schema.user.id, user.id)),
+        where: (todo) => and(eq(todo.id, todoId), eq(todo.userId, user.id)),
       });
 
       if (!todo) {
@@ -73,21 +96,22 @@ export const todos = new Hono<{ Bindings: CloudflareBindings }>()
       const todoId = c.req.param('id');
 
       const todo = await db.query.todo.findFirst({
-        where: and(eq(schema.todo.id, todoId), eq(schema.user.id, user.id)),
+        where: (todo) => and(eq(todo.id, todoId), eq(todo.userId, user.id)),
       });
 
       if (!todo) {
-        return c.status(404);
+        return c.body(null, 404);
       }
 
       await db
-        .update(schema.todo)
-        .set({ completed: true })
-        .where(and(eq(schema.user.id, user.id), eq(schema.todo.id, todoId)));
+        .delete(schema.todo)
+        .where(
+          and(eq(schema.todo.userId, user.id), eq(schema.todo.id, todoId)),
+        );
 
-      return c.status(204);
+      return c.body(null, 204);
     } catch {
-      return c.status(500);
+      return c.body(null, 500);
     }
   })
   .patch('/:id/complete', async (c) => {
@@ -97,21 +121,27 @@ export const todos = new Hono<{ Bindings: CloudflareBindings }>()
       const todoId = c.req.param('id');
 
       const todo = await db.query.todo.findFirst({
-        where: and(eq(schema.todo.id, todoId), eq(schema.user.id, user.id)),
+        where: (todo) => and(eq(todo.id, todoId), eq(todo.userId, user.id)),
       });
 
       if (!todo) {
         return c.status(404);
       }
+      if (todo.completed) {
+        return c.json({ todo }, 200);
+      }
 
       const newTodo = await db
         .update(schema.todo)
         .set({ completed: true })
-        .where(eq(schema.todo, todo))
+        .where(
+          and(eq(schema.todo.userId, user.id), eq(schema.todo.id, todo.id)),
+        )
         .returning();
 
       return c.json({ todo: newTodo[0] }, 200);
-    } catch {
+    } catch (e) {
+      console.error(e);
       return c.json({}, 500);
     }
   })
@@ -122,13 +152,22 @@ export const todos = new Hono<{ Bindings: CloudflareBindings }>()
       const todoId = c.req.param('id');
 
       const todo = await db.query.todo.findFirst({
-        where: and(eq(schema.todo.id, todoId), eq(schema.user.id, user.id)),
+        where: (todo) => and(eq(todo.id, todoId), eq(todo.userId, user.id)),
       });
+
+      if (!todo) {
+        return c.status(404);
+      }
+      if (!todo.completed) {
+        return c.json({ todo }, 200);
+      }
 
       const newTodo = await db
         .update(schema.todo)
         .set({ completed: false })
-        .where(eq(schema.todo, todo))
+        .where(
+          and(eq(schema.todo.userId, user.id), eq(schema.todo.id, todo.id)),
+        )
         .returning();
 
       return c.json({ todo: newTodo[0] }, 200);

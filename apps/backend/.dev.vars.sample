@@ -1,0 +1,12 @@
+# API URL
+BETTER_AUTH_URL=http://localhost:8787
+
+# bunx @better-auth/cli@latest secret
+BETTER_AUTH_SECRET=
+
+# client URL
+CORS_ORIGIN=http://localhost:3000
+
+# OAuth
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=

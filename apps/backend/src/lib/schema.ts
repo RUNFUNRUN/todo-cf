@@ -1,4 +1,3 @@
-import { sql } from 'drizzle-orm';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const user = sqliteTable('user', {
@@ -62,11 +61,11 @@ export const todo = sqliteTable('todo', {
   name: text('name').notNull(),
   completed: integer('completed', { mode: 'boolean' }).default(false).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' })
-    .default(sql`(current_timestamp)`)
+    .$defaultFn(() => new Date())
     .notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .default(sql`(current_timestamp)`)
-    .$onUpdate(() => sql`(current_timestamp)`)
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date())
     .notNull(),
   userId: text('user_id')
     .references(() => user.id)

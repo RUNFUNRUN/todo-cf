@@ -32,8 +32,8 @@ CREATE TABLE `todo` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`completed` integer DEFAULT false NOT NULL,
-	`created_at` integer DEFAULT (current_timestamp) NOT NULL,
-	`updated_at` integer DEFAULT (current_timestamp) NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
 	`user_id` text NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );

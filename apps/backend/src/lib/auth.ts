@@ -14,6 +14,6 @@ export const getAuth = (env: CloudflareBindings) => {
         clientSecret: env.GITHUB_CLIENT_SECRET,
       },
     },
-    trustedOrigins: env.CORS_ORIGIN.split(','),
+    trustedOrigins: [env.CORS_ORIGIN],
   });
 };

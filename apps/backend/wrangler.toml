@@ -6,6 +6,10 @@ compatibility_date = "2025-01-12"
 [observability]
 enabled = true
 
+[env.production.vars]
+BETTER_AUTH_URL = "https://todo-backend.runfunrun.workers.dev"
+CORS_ORIGIN = "https://todo.runfunrun.xyz"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "todo-db"
