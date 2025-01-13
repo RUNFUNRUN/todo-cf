@@ -14,6 +14,6 @@ cp .dev.vars.sample .dev.vars
 bun dev
 
 # for prod
-# edit wrangler.toml [env.production.vars]
+# set env on web UI
 bun run deploy
 ```
