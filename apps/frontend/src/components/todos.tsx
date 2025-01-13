@@ -108,9 +108,8 @@ const Todo = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleComplete = async () => {
-    const currentChecked = checked;
     try {
-      if (todo.completed) {
+      if (checked) {
         setChecked(false);
         await client.todos[':id'].incomplete.$patch({ param: { id: todo.id } });
       } else {
@@ -119,7 +118,7 @@ const Todo = ({
       }
       await queryClient.invalidateQueries({ queryKey: ['todos'] });
     } catch {
-      setChecked(currentChecked);
+      setChecked((pre) => !pre);
       toast({ title: 'An error occurred.', variant: 'destructive' });
     }
   };
