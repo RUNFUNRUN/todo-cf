@@ -13,6 +13,14 @@ export const App = () => {
     <Layout>
       <div className='space-y-4 mx-auto my-12 text-center'>
         <h1 className='text-2xl font-bold'>TODO App</h1>
+        <p>
+          <a
+            href='https://github.com/RUNFUNRUN/todo-cf'
+            className='text-xl underline'
+          >
+            https://github.com/RUNFUNRUN/todo-cf
+          </a>
+        </p>
         {isPending && <p>Loading...</p>}
         <div>{!isPending && (session ? <SignOut /> : <SignIn />)}</div>
         {session && <Todos />}
