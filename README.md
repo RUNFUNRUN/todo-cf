@@ -1,3 +1,9 @@
+# TODO CF
+
+simple todo app on cloudflare pages & workers
+
+Read the README files under the apps/ directory.
+
 # Turborepo starter
 
 This is an official starter Turborepo.
