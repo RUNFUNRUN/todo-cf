@@ -117,7 +117,7 @@ const Todo = ({
         setChecked(true);
         await client.todos[':id'].complete.$patch({ param: { id: todo.id } });
       }
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      await queryClient.invalidateQueries({ queryKey: ['todos'] });
     } catch {
       setChecked(currentChecked);
       toast({ title: 'An error occurred.', variant: 'destructive' });
