@@ -146,12 +146,7 @@ const Todo = ({
           />
         </TableCell>
         <TableCell>
-          <p
-            className={cn(
-              'text-left md:text-lg',
-              todo.completed && 'line-through',
-            )}
-          >
+          <p className={cn('text-left md:text-lg', checked && 'line-through')}>
             {todo.name}
           </p>
         </TableCell>
