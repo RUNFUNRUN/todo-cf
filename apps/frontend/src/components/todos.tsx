@@ -56,6 +56,7 @@ const NewTodo = () => {
   const onSubmit = async (newTodo: z.infer<typeof newTodoSchema>) => {
     try {
       await client.todos.$post({ json: newTodo });
+      await queryClient.cancelQueries({ queryKey: ['todos'] });
       await queryClient.invalidateQueries({ queryKey: ['todos'] });
       form.reset();
     } catch {
@@ -116,6 +117,7 @@ const Todo = ({
         setChecked(true);
         await client.todos[':id'].complete.$patch({ param: { id: todo.id } });
       }
+      await queryClient.cancelQueries({ queryKey: ['todos'] });
       await queryClient.invalidateQueries({ queryKey: ['todos'] });
     } catch {
       setChecked((pre) => !pre);
@@ -127,7 +129,8 @@ const Todo = ({
     try {
       setIsDeleting(true);
       await client.todos[':id'].$delete({ param: { id: todo.id } });
-      queryClient.invalidateQueries({ queryKey: ['todos'] });
+      await queryClient.cancelQueries({ queryKey: ['todos'] });
+      await queryClient.invalidateQueries({ queryKey: ['todos'] });
     } catch {
       setIsDeleting(false);
       toast({ title: 'An error occurred.', variant: 'destructive' });
