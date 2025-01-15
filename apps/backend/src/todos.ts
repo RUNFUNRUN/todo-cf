@@ -64,7 +64,7 @@ export const todos = new Hono<{ Bindings: CloudflareBindings }>()
           .values({ name: reqBody.name, userId: user.id })
           .returning();
 
-        return c.json({ todo }, 201);
+        return c.json({ todo: todo[0] }, 201);
       } catch {
         return c.json({}, 500);
       }
