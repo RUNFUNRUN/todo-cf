@@ -72,7 +72,7 @@ const NewTodo = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} id={newTodoId}>
             <FormField
               control={form.control}
-              name={'name'}
+              name='name'
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
